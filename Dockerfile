@@ -14,7 +14,8 @@ ARG PLATFORM_CPU_ARCH=x86_64
 ARG XZ_VERSION=5.6.1
 ARG XZ_SO=liblzma.so
 ARG XZ_LIB=$XZ_SO.$XZ_VERSION
-ARG XZ_DEB=liblzma5_$XZ_VERSION-1_$PLATFORM_ARCH.deb
+ARG XZ_DEB=liblzma5_${XZ_VERSION}_${PLATFORM_ARCH}.deb
+ARG XZ_BOT_REV=0cabe4c
 
 #
 # BUILD: Clone xzbot repo.
@@ -24,7 +25,8 @@ FROM $BUILD_IMAGE as build
 WORKDIR /build
 
 RUN apk add --no-cache git \
-    && git clone https://github.com/amlweems/xzbot.git .
+    && git clone https://github.com/amlweems/xzbot.git . \
+    && git checkout $XZ_BOT_REV
 
 #
 # BUILD-PATCH: Patch liblzma with ED448 public key (seed 0).
@@ -38,7 +40,7 @@ WORKDIR /build
 COPY --from=build /build/patch.py /build/assets/$XZ_LIB .
 
 RUN ARCH=$(uname -m | tr '_' '-'); \
-    apt-get update && apt-get install -y \
+    apt-get update && apt-get install -y --no-install-recommends \
     binutils-$ARCH-$PLATFORM_OS-gnu \
     cpp \
     && pip install pwntools \
@@ -68,14 +70,15 @@ ARG PLATFORM_CPU_ARCH
 ARG PLATFORM_OS
 
 WORKDIR /build
+COPY debs/$XZ_DEB .
 COPY --from=build-patch /build/$XZ_LIB.patch .
 COPY --from=build-ssh-client /build/xzbot .
 
-RUN apt-get update && apt-get install -y \
-    wget \
+RUN apt-get update && apt-get install -y --no-install-recommends --no-install-suggests \
+    systemd \
     openssh-server \
-    && wget https://snapshot.debian.org/archive/debian/20240328T025657Z/pool/main/x/xz-utils/$XZ_DEB \
-    && apt-get install --allow-downgrades --yes ./$XZ_DEB \
+    && dpkg -i ./$XZ_DEB \
+    && sed -i 's/#Port 22/Port 2222/' /etc/ssh/sshd_config \
     && rm -rf /var/lib/apt/lists/*
     
 # Patch liblzma before starting systemd
