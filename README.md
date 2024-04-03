@@ -25,7 +25,7 @@ docker run --rm -it -d \
   --privileged \
   --name xz-backdoor \
   --platform linux/amd64 \
-  ghcr.io/rezigned/xz-backdoor-container-image:latest
+  ghcr.io/rezigned/xz-backdoor:latest
 ```
 **2. Run a command via `xzbot`**
 
