@@ -40,7 +40,7 @@ WORKDIR /build
 COPY --from=build /build/patch.py /build/assets/$XZ_LIB .
 
 RUN ARCH=$(uname -m | tr '_' '-'); \
-    apt-get update && apt-get install -y --no-install-recommends \
+    apt-get update && apt-get install -y --no-install-recommends --no-install-suggests \
     binutils-$ARCH-$PLATFORM_OS-gnu \
     cpp \
     && pip install pwntools \
@@ -68,6 +68,7 @@ ARG XZ_LIB
 ARG XZ_DEB
 ARG PLATFORM_CPU_ARCH
 ARG PLATFORM_OS
+# ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /build
 COPY debs/$XZ_DEB .
@@ -75,13 +76,14 @@ COPY --from=build-patch /build/$XZ_LIB.patch .
 COPY --from=build-ssh-client /build/xzbot .
 
 RUN apt-get update && apt-get install -y --no-install-recommends --no-install-suggests \
-    systemd \
     openssh-server \
-    && dpkg -i ./$XZ_DEB \
-    && sed -i 's/#Port 22/Port 2222/' /etc/ssh/sshd_config \
     && rm -rf /var/lib/apt/lists/*
-    
-# Patch liblzma before starting systemd
-RUN cp $XZ_LIB.patch /lib/$PLATFORM_CPU_ARCH-$PLATFORM_OS-gnu/$XZ_LIB
 
-CMD ["/lib/systemd/systemd"]
+# Install vulnerable version of liblzma and override it with patched version
+RUN dpkg -i ./$XZ_DEB \
+    && cp $XZ_LIB.patch /lib/$PLATFORM_CPU_ARCH-$PLATFORM_OS-gnu/$XZ_LIB \
+    && sed -i 's/#Port 22/Port 2222/' /etc/ssh/sshd_config \
+    && mkdir -p /var/run/sshd
+
+# The trick to the exploit works without "systemd" is to unset all envs except "LANG"
+CMD ["env", "-i", "LANG=en_US.UTF-8", "/usr/sbin/sshd", "-D"]

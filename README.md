@@ -8,7 +8,8 @@ The container image of [xz](https://tukaani.org/xz-backdoor/) backdoor ([CVE-202
 ![xz-backdoor demo](.github/demo.gif)
 
 ## Overview
-The container images are available on both Github ([ghcr.io/rezigned/xz-backdoor](https://github.com/rezigned/xz-backdoor/pkgs/container/xz-backdoor)) and Docker ([rezigned/xz-backdoor](https://hub.docker.com/r/rezigned/xz-backdoor)) registries.
+The `xz-backdoor` container images don't rely on `systemd` due to the fact that the exploit can be triggered with only just `sshd` if certain conditions are met.
+As a result, it allows us to start the container without `--privileged` flag which is considered insecure.
 
 ### Versions
 Both versions of the xz-backdoor are available as image tags.
@@ -26,20 +27,20 @@ Both versions of the xz-backdoor are available as image tags.
 ### Usage
 **1. Start the container image**
 
-> [!IMPORTANT]
-> The `--privileged` option is required in order to start `systemd` as PID 1.
+> [!TIP]
+> A specific version of liblzma can be specified via image tag e.g. `rezigned/xz-backdoor:5.6.0`.
 
 ```sh
 docker run --rm -it -d \
-  --privileged \
   --name xz-backdoor \
   --platform linux/amd64 \
-  rezigned/xz-backdoor:latest # or xz-backdoor:5.6.0
+  rezigned/xz-backdoor:latest
 ```
+
 **2. Run a command via `xzbot`**
 
 > [!NOTE]
-> The ourput of the default command (`id`) is redirected to `/tmp/.xz`.
+> The output of the default command (`id`) is redirected to `/tmp/.xz`.
 >
 > See https://github.com/amlweems/xzbot for more details.
 
@@ -55,3 +56,4 @@ docker exec -it `docker ps -f name=xz-backdoor -q` ./xzbot -cmd "uname -a > /tmp
 * https://edofic.com/posts/2021-09-12-podman-m1-amd64/
 * https://github.com/amlweems/xzbot
 * https://www.openwall.com/lists/oss-security/2024/03/29/4
+* https://github.com/LewisGaul/systemd-containers
